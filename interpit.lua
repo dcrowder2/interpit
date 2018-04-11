@@ -245,11 +245,13 @@ function interpit.interp(ast, state, incall, outcall)
                 end
               end
             end
-                if #ast % 2 == 0 then
-                  interp_stmt_list(ast[#ast])
-                end
+            if #ast % 2 == 0 then
+              interp_stmt_list(ast[#ast])
+            end
         elseif ast[1] == WHILE_STMT then
-            --TODO
+            while numToBool(process_lvalue(ast[2])) do
+              interp_stmt_list(ast[3])
+            end
         else
             assert(ast[1] == ASSN_STMT)
             body = ast[2]
@@ -266,7 +268,10 @@ function interpit.interp(ast, state, incall, outcall)
         end
     end
 
-
+    --eval_expression
+    --takes in a ast and returns a value based upon what it is classified as
+    --handles SIMPLE_VAR, NUMLIT, BOOLLIT_VAL, STRLIT_OUT, CALL_FUNC UN_OP
+    --and BIN_OP
     function eval_expression(body)
       if body[1] == SIMPLE_VAR then
         return body[2]
@@ -280,7 +285,13 @@ function interpit.interp(ast, state, incall, outcall)
       elseif body[1] == ARRAY_VAR then
         return body[2], true
       elseif body[1] == CALL_FUNC then
-        --TODO
+        name = body[2]
+        func = state.f[name]
+        if func == nil then
+            func = { STMT_LIST }  -- Default AST
+        end
+        interp_stmt_list(func)
+        return state.v["return"]
       elseif type(body[1]) == "table" then
         if body[1][1] == UN_OP then
           if body[1][2] == "+" then
@@ -328,6 +339,11 @@ function interpit.interp(ast, state, incall, outcall)
       end
     end
 
+    --process_lvalue
+    --started out just processing lvalues, ie variables either simple or array
+    --but had to add the functionality for it to return a NUMLIT, because
+    --all the unary and binary operators need to be able to handle variables
+    --and NUMLIT, so i pushed that to this function
     function process_lvalue(value)
       local lvalue, array = eval_expression(value)
       local index
