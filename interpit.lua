@@ -240,15 +240,14 @@ function interpit.interp(ast, state, incall, outcall)
             for i = 2, #ast do
               if ast[i][1] ~= STMT_LIST then
                 if numToBool(eval_expression(ast[i])) then
-                    print("Here")
-                    print(i)
                     interp_stmt_list(ast[i+1])
                     return
                 end
               end
             end
-                print("No here")
-                interp_stmt_list(ast[#ast])
+                if #ast % 2 == 0 then
+                  interp_stmt_list(ast[#ast])
+                end
         elseif ast[1] == WHILE_STMT then
             --TODO
         else
